@@ -1,2 +1,2 @@
 #!/bin/bash
-ls -1R | grep ^d | wc -1
+ls .-type d -not -name "-" | wc -1
