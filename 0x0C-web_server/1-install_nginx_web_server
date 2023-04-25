@@ -6,18 +6,16 @@
 ## As an answer file, write a Bash script that configures a new Ubuntu machine\
 ## Don't use systemctl for restarting nginx
 
-apt-get -y update
-apt-get -y install nginx
+sudo apt-get update -y -qq && \
+	 sudo apt-get install nginx -y
 
-touch /var/www/html/index.html
-echo "Hello World!" > /var/www/html/index.html
+sudo service nginx start
+sudo ufw allow 'Nginx HTTP'
+sudo chown -R "$USER":"$USER" /var/www/html
+sudo chmod -R 755 /var/www
 
-printf %s "server {
-    listen		80 default_server;
-    listen		[::]:80 default_server;
-    root		/var/www/html;
-    index		index.html index.htm index.nginx-debian.html;
-}
-" > /etc/nginx/sites-available/default
+cp /var/www/html/index.nginx-debian.html /var/www/html/index.nginx-debian.html.bckp
 
-service nginx restart
+echo -e "Hello World!" | dd status=none of=/var/www/html/index.nginx-debian.html
+
+sudo service nginx restart
