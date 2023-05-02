@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Configures Nginx
+# Script configures a new machine
+# shellcheck disable=SC2154
+
+sudo apt-get update
+sudo apt-get install nginx
+
+HOST_NAME=$(hostname)
+HEADER="\\\n\tadd_header X-Served-By $HOST_NAME;\n"
+FIND=$(grep "X-Server-by" /etc/nginx/sites-available/default)
+if [[ -z $FIND ]]; then
+    sed -i "23i $HEADER" /etc/nginx/sites-available/default
+fi
+
+echo "Hello World!" > /var/www/html/index.html
+
+FIND=$(grep "error_page 404" /etc/nginx/sites-available/default)
+ERROR="\\\n\terror_page 404 /custom_404.html;\n"
+if [[ -z $FIND ]]; then
+    echo "Ceci n'est pas une page" > /var/www/html/custom_404.html
+    sed -i "40i $ERROR" /etc/nginx/sites-available/default
+fi
+
+service nginx restart
