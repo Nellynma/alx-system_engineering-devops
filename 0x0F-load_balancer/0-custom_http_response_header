@@ -6,20 +6,23 @@
 sudo apt-get update
 sudo apt-get install nginx
 
-HOST_NAME=$(hostname)
-HEADER="\\\n\tadd_header X-Served-By $HOST_NAME;\n"
-FIND=$(grep "X-Server-by" /etc/nginx/sites-available/default)
-if [[ -z $FIND ]]; then
-    sed -i "23i $HEADER" /etc/nginx/sites-available/default
-fi
+# replace the index.html file content 
+echo "Hello World!" | sudo tee /var/www/html/index.html > /dev/null
 
-echo "Hello World!" > /var/www/html/index.html
+# create custom 404 error page
+echo "Ceci n'est pas une page" | sudo tee /var/www/html/custom_404.html > /dev/null
 
-FIND=$(grep "error_page 404" /etc/nginx/sites-available/default)
-ERROR="\\\n\terror_page 404 /custom_404.html;\n"
-if [[ -z $FIND ]]; then
-    echo "Ceci n'est pas une page" > /var/www/html/custom_404.html
-    sed -i "40i $ERROR" /etc/nginx/sites-available/default
-fi
+# handle redirection
+sudo sed -i '/^\sserver_name.*/a \        rewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;' /etc/nginx/sites-available/default
 
-service nginx restart
+# handle error 404
+sudo sed -i '/^\slocation.*/i \        error_page 404 /custom_404.html;' /etc/nginx/sites-available/default
+
+# shellcheck disable=SC2154
+# add custom header
+sudo sed -i "/server_name _;/a \        add_header X-Served-By $(hostname);" /etc/nginx/sites-available/default
+
+# start nginx
+sudo service nginx restart
+
+~                            
