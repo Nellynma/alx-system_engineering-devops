@@ -1,19 +1,12 @@
 #!/usr/bin/env bash
 # Install and configure HAProxy on individual server
-sudo apt-get update
-sudo apt-get install -y haproxy
+sudo apt-get -y update
+sudo apt-get -y install haproxy
 
-echo "
-frontend safeville.tech
-  bind *:80
-  default_backend webservers
+# Enable load balancer
+sudo sed -i "8 a\ENABLED=1\n" /etc/default/haproxy
 
-backend webservers
-  balance roundrobin
-  server web-01 54.83.164.94-web-01:80 check
-  server web-02 54.165.18.70-web-02:80 check
-" | sudo tee -a /etc/haproxy/haproxy.cfg > /dev/null
+# Config load balancer with web servers
+sudo sed -i "$ a\ \nfrontend load_balancer\n\tbind\t0.0.0.0:80\n\tmode\thttp\n\tdefault_backend\tweb_servers\n\nbackend web_servers\n\tbalance\troundrobin\n\tserver\t18403-web-01\t100.26.241.132:80\n\tserver\t18403-web-02\t35.153.93.93" /etc/haproxy/haproxy.cfg
 
-sudo sed -i 's/ENABLED=0/ENABLED=1/' /etc/default/haproxy
-
-sudo service haproxy restart
+sudo service haproxy start
